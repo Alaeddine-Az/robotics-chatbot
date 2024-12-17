@@ -160,3 +160,45 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+# Robotics Education Chatbot
+
+An AI-powered chatbot designed to help high school students with robotics projects. Built with Flask and Groq LLM.
+
+## Features
+
+- Interactive chat interface
+- Robotics education focus
+- Context-aware responses
+- Token management
+- Rate limiting
+- Error handling
+
+## Installation
+
+1. Clone the repository
+
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.env/
+.venv/
+
+# Logs
+*.log
+chatbot.log
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store

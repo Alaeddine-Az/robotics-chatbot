@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Robotics Education Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .input-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            align-items: flex-start;
+        }
+        textarea {
+            padding: 10px;
+            width: 70%;
+            margin-right: 10px;
+            min-height: 80px;
+            resize: vertical;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            height: 80px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        #chat-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 160px;
+            padding: 20px;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: 20%;
+            text-align: right;
+        }
+        .assistant-message {
+            background-color: #f5f5f5;
+            margin-right: 20%;
+        }
+        .error {
+            color: red;
+        }
+        #thinking-indicator {
+            margin: 10px 0;
+            padding: 10px;
+            font-style: italic;
+            color: #666;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container"></div>
+    <div class="input-container">
+        <textarea 
+            id="message" 
+            placeholder="Ask about robotics projects..."
+            rows="3"
+        ></textarea>
+        <button onclick="sendMessage()" id="sendButton">Send</button>
+    </div>
+
+    <script>
+        let conversationHistory = [];
+
+        function scrollToBottom() {
+            const chatContainer = document.getElementById('chat-container');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function displayMessage(message, isUser, isTemporary = false) {
+            const chatContainer = document.getElementById('chat-container');
+            const messageDiv = document.createElement('div');
+            
+            if (isTemporary) {
+                messageDiv.id = 'thinking-indicator';
+                messageDiv.textContent = message;
+            } else {
+                messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
+                // Format code blocks and preserve newlines
+                const formattedMessage = message
+                    .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                    .replace(/\n/g, '<br>');
+                messageDiv.innerHTML = formattedMessage;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom after adding message
+            setTimeout(scrollToBottom, 100);
+            
+            return messageDiv;
+        }
+
+        async function sendMessage() {
+            const messageInput = document.getElementById('message');
+            const sendButton = document.getElementById('sendButton');
+            const message = messageInput.value.trim();
+
+            if (!message) {
+                return;
+            }
+
+            // Display user message
+            displayMessage(message, true);
+
+            // Disable button and show loading
+            sendButton.disabled = true;
+            const thinkingIndicator = displayMessage('Thinking...', false, true);
+
+            try {
+                const response = await fetch('http://localhost:8000/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        history: conversationHistory
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Remove thinking indicator
+                thinkingIndicator.remove();
+
+                if (data.response) {
+                    displayMessage(data.response, false);
+                    conversationHistory = data.history;
+                } else if (data.error) {
+                    displayMessage(`Error: ${data.error}`, false);
+                }
+
+                messageInput.value = ''; // Clear input after successful send
+
+            } catch (error) {
+                console.error('Error details:', error);
+                thinkingIndicator.remove();
+                displayMessage(`Error: ${error.message}`, false);
+            } finally {
+                sendButton.disabled = false;
+                messageInput.focus(); // Return focus to input field
+            }
+        }
+
+        // Update the Enter key handler for textarea
+        document.getElementById('message').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Prevent new line
+                sendMessage();
+            }
+        });
+
+        // Auto-resize textarea as user types
+        document.getElementById('message').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Initial focus on input field
+        document.getElementById('message').focus();
+    </script>
+</body>
+</html>
