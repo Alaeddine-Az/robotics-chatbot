@@ -160,6 +160,7 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+<<<<<<< HEAD
 
 # Robotics Education Chatbot
 
@@ -202,3 +203,5 @@ chatbot.log
 *.swp
 *.swo
 .DS_Store
+=======
+>>>>>>> 78704aff238eb60353a2b32a12aa35d0bb14a7d9

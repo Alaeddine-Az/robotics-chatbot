@@ -67,4 +67,8 @@ MIT License - see LICENSE file for details
 
 ## Contact
 
+<<<<<<< HEAD
 Your Name - your.email@example.com
+=======
+Your Name - theozonecorp@gmail.com
+>>>>>>> 78704aff238eb60353a2b32a12aa35d0bb14a7d9
